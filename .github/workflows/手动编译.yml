@@ -1,17 +1,18 @@
-name: 手动临时编译caddy
+name: 手动编译caddy
 
 on:
   workflow_dispatch:
     inputs:
       branch:
-        description: '编译github.tailscale/tailscale分支或版本号，默认主分支master'
+        description: '编译的分支或版本号，默认主分支main'
         required: true
         default: 'v2.9.0'
       info:
         description: '发布Release的补充说明'
         required: false
         default: ''
-
+permissions:
+  contents: write
 env:
   TZ: Asia/Shanghai
   tag: "${{ github.event.inputs.branch }}"
@@ -159,17 +160,18 @@ jobs:
           name: caddy-${{ github.event.inputs.branch }}-${{ matrix.TARGET }}
           path: /opt/caddy/
       - name: 发布
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-            token: ${{ secrets.c8 }}
+            token: ${{ github.token }}
             body: |
              > ### 编译时间 ：${{ env.build_time }}
 
               caddy-CPU架构-upx 为upx压缩文件
               
-              添加了两个插件：
+              添加了三个插件：
               **[mholt/caddy-webdav](https://github.com/mholt/caddy-webdav)**
               **[aksdb/caddy-cgi](https://github.com/aksdb/caddy-cgi)**
+              **[abiosoft/caddy-exec](https://github.com/abiosoft/caddy-exec)**
 
               查看集成的插件列表命令： `caddy list-modules -s`
               
