@@ -6,7 +6,7 @@ on:
       branch:
         description: '编译github.tailscale/tailscale分支或版本号，默认主分支master'
         required: true
-        default: 'v2.8.4'
+        default: 'v2.9.0'
       info:
         description: '发布Release的补充说明'
         required: false
