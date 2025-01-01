@@ -141,7 +141,8 @@ jobs:
           GOOS=${OOS} GOARCH=${ARCH} GOMIPS=${SOFT} GOARM=${ARM} xcaddy build \
           --with github.com/caddyserver/caddy/v2=/opt/mycaddy \
           --with github.com/mholt/caddy-webdav \
-          --with github.com/aksdb/caddy-cgi/v2
+          --with github.com/aksdb/caddy-cgi/v2 \
+          --with github.com/abiosoft/caddy-exec
           file caddy
           du -k caddy
           mv caddy caddy-${TARGET}
