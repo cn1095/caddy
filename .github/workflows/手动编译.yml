@@ -30,6 +30,12 @@ jobs:
       tag: ${{ steps.getversion.outputs.tag }}
       ver: ${{ steps.getversion.outputs.ver }}
     steps:
+      - name: 删除流程记录
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          retain_days: 0
+          keep_minimum_runs: 0
       - name: 获取版本号
         id: getversion
         run: |
@@ -38,12 +44,7 @@ jobs:
           echo "tag=${tag}" >> $GITHUB_OUTPUT
           echo "ver=${ver}" >> $GITHUB_OUTPUT
           echo -e "获取到最新的版本号：${tag}\n当前仓库最新版本号：${ver}"
-      - name: 删除流程记录
-        uses: Mattraks/delete-workflow-runs@main
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          retain_days: 0
-          keep_minimum_runs: 0
+      
  build: 
     needs: check
     if: ${{ github.event.inputs.bj == 'true' || (github.event.inputs.bj != 'true' && needs.check.outputs.tag != needs.check.outputs.ver) }}
@@ -154,8 +155,6 @@ jobs:
         name: 编译
         run: |
           go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-          echo "github.event.inputs.branch=${{ github.event.inputs.branch }}"
-          echo "steps.getversion.outputs.tag=${{ needs.check.outputs.tag }}"
           if [[ "${{ env.BJ }}" == "true" ]]; then
             echo "强制进行编译..."
             if [[ -n "${{ github.event.inputs.branch }}" ]]; then
