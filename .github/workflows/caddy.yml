@@ -9,70 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 获取最新Go
-        run: |
-          latest_version=$(curl -L -k -s https://golang.org/dl/?mode=json | grep -m 1 -o '"version": "[^"]*' | sed 's/"version": "//' | tr -d 'go" ')
-          echo "go版本=$latest_version"
-          echo "gotag=$latest_version" >> $GITHUB_ENV
-      - name: 安装go
-        uses: actions/setup-go@v4
+      - name: 运行其他流程
+        uses: benc-uk/workflow-dispatch@v1
         with:
-          go-version: ${{ env.gotag }}
-      -
-        name: 检查代码仓库
-        uses: actions/checkout@v3
-      - 
-        name: 编译
-        run: |
-          git clone https://github.com/caddyserver/caddy /opt/src
-          tag=$(curl -s https://api.github.com/repos/caddyserver/xcaddy/releases/latest | grep -o '"tag_name": "v.*"' | cut -d'"' -f4)
-          rel=$(echo $tag | cut -c 2-)
-          echo "xcaddy_tag=$rel"
-          wget -c "https://github.com/caddyserver/xcaddy/releases/download/v$rel/xcaddy_${rel}_linux_amd64.tar.gz" -O /opt/xcaddy.tar.gz
-          tag=$(curl -s https://api.github.com/repos/caddyserver/caddy/releases/latest | grep -o '"tag_name": "v.*"' | cut -d'"' -f4)
-          tar zxf /opt/xcaddy.tar.gz -C /opt/
-          sudo ln -sf /opt/xcaddy /usr/bin/xcaddy
-          go mod init caddy
-          go get github.com/caddyserver/caddy/v2@$tag
-          echo "开始构建"
-          git clone https://github.com/lmq8267/cloudflared.git /opt/st
-          mkdir -p /opt/caddy
-          cp -rf /opt/src/cmd/caddy/main.go /opt/caddy/main.go
-          cd /opt/caddy
-          sudo timedatectl set-timezone "Asia/Shanghai"
-          tar -xvf /opt/st/upx-3.95-amd64_linux.tar.xz -C /opt
-          chmod 777 /opt/upx-3.95-amd64_linux/upx
-          chmod 777 /opt/st/strip
-          GOOS=linux GOARCH=mipsle GOMIPS=softfloat xcaddy build $tag \
-          --with github.com/mholt/caddy-webdav \
-          --with github.com/aksdb/caddy-cgi/v2
-          file caddy
-          du -k caddy
-          cp -rf caddy caddy_upx
-          /opt/st/strip caddy_upx
-          /opt/upx-3.95-amd64_linux/upx --lzma --best caddy_upx
-          echo "build_time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
-          echo "build_tag=$tag" >> $GITHUB_ENV
-          rm -rf main.go
-      - name: 发布Release
-        uses: softprops/action-gh-release@v1
-        with:
-          token: ${{ secrets.c8 }}
-          tag_name: ${{ env.build_tag }}
-          body: |
-           > ### 编译时间 ：${{ env.build_time }}
-
-           添加了两个插件：
-           **[mholt/caddy-webdav](https://github.com/mholt/caddy-webdav)**
-           **[aksdb/caddy-cgi](https://github.com/aksdb/caddy-cgi)**
-           
-           **[官方更新说明](https://github.com/caddyserver/caddy/releases)**
-          files: |
-              /opt/caddy/*
-      - 
-       name: 删除工作流
-       uses: GitRML/delete-workflow-runs@main
-       with:
-        token: ${{ secrets.c8 }}
-        retain_days: 2
-        keep_minimum_runs: 0
+          workflow: 编译caddy.yml
