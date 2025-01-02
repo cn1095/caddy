@@ -1,23 +1,51 @@
-name: 手动编译caddy
+name: 编译caddy
 
 on:
   workflow_dispatch:
     inputs:
       branch:
-        description: '编译的分支或版本号，默认主分支main'
-        required: true
-        default: 'v2.9.0'
+        description: '指定编译的版本号'
+        required: false
+        default: ''
       info:
         description: '发布Release的补充说明'
         required: false
         default: ''
+      bj:
+        description: '强制使用手动编译'
+        required: true
+        default: false
+        type: boolean
 permissions:
   contents: write
+  actions: write
 env:
   TZ: Asia/Shanghai
-  tag: "${{ github.event.inputs.branch }}"
+  BJ: ${{ github.event.inputs.bj }}
+  BRANCH: ${{ github.event.inputs.branch }}
 jobs:
+ check:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.getversion.outputs.tag }}
+      ver: ${{ steps.getversion.outputs.ver }}
+    steps:
+      - name: 获取版本号
+        id: getversion
+        run: |
+          ver=`curl https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest | jq -r '.tag_name'`
+          tag=`curl https://api.github.com/repos/tailscale/tailscale/releases/latest | jq -r '.tag_name'`
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+          echo "ver=${ver}" >> $GITHUB_OUTPUT
+      - name: 删除流程记录
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          retain_days: 0
+          keep_minimum_runs: 0
  build: 
+    needs: check
+    if: ${{ github.event.inputs.bj == 'true' || (github.event.inputs.bj != 'true' && needs.check.outputs.tag != needs.check.outputs.ver) }}
     strategy:
       fail-fast: false
       matrix:
@@ -125,8 +153,19 @@ jobs:
         name: 编译
         run: |
           go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-          git clone -b ${{ github.event.inputs.branch }} https://github.com/caddyserver/caddy /opt/mycaddy
-          cp -rf ./browse.html /opt/mycaddy/modules/caddyhttp/fileserver/browse.html
+          if [[ "${{ env.BJ }}" == "true" ]]; then
+            if [[ -n "${{ github.event.inputs.branch }}" ]]; then
+                echo "TAG=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
+            else
+                echo "TAG=${{ steps.getversion.outputs.tag }}" >> $GITHUB_ENV
+            fi
+          else
+            echo "TAG=${{ steps.getversion.outputs.tag }}" >> $GITHUB_ENV
+          fi
+          git clone -b ${{ env.TAG }} https://github.com/caddyserver/caddy /opt/mycaddy
+          curl -Lko /opt/browse.html https://github.com/lmq8267/caddy/raw/refs/heads/main/browse.html || wget --no-check-certificate -O /opt/browse.html https://github.com/lmq8267/caddy/raw/refs/heads/main/browse.html
+          
+          cp -rf /opt/browse.html /opt/mycaddy/modules/caddyhttp/fileserver/browse.html
           #sed -i 's/caddy\.Log().Warn("failed to set GOMAXPROCS", zap.Error(err))/_ = err/g' /opt/mycaddy/cmd/main.go
           sed -i 's/caddy\.Log().Warn("failed to set GOMAXPROCS", zap.Error(err))/runtime.GOMAXPROCS(4)/g' /opt/mycaddy/cmd/main.go
           sed -i 's/full += " " + module.Sum/full = module.Version/g' /opt/mycaddy/caddy.go
@@ -179,5 +218,17 @@ jobs:
 
               ${{ github.event.inputs.info }}
               
-            tag_name: ${{ github.event.inputs.branch }}
+            tag_name: ${{ env.TAG }}
             files: /opt/caddy/*
+
+ keepalive-workflow:
+    name: 工作流保活
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gautamkrishnar/keepalive-workflow@v2
+        #with:
+          #use_api: true
