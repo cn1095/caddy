@@ -9,6 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: 检查代码仓库
+        uses: actions/checkout@v4
       - name: 运行其他流程
         uses: ./.github/workflows/编译caddy.yml
         #with:
