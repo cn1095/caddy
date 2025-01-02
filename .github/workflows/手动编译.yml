@@ -35,9 +35,16 @@ jobs:
         run: |
           ver=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest | jq -r '.tag_name')
           tag=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/caddyserver/caddy/releases/latest | jq -r '.tag_name')
+          echo -e "获取到最新的版本号：${tag}\n当前仓库最新版本号：${ver}"
           echo "tag=${tag}" >> $GITHUB_OUTPUT
           echo "ver=${ver}" >> $GITHUB_OUTPUT
-          echo -e "获取到最新的版本号：${tag}\n当前仓库最新版本号：${ver}"
+          
+      - name: 删除流程记录
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          retain_days: 0
+          keep_minimum_runs: 0
       
  build: 
     needs: check
