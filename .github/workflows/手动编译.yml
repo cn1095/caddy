@@ -33,8 +33,8 @@ jobs:
       - name: 获取版本号
         id: getversion
         run: |
-          ver=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest | jq -r '.tag_name')
-          tag=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/caddyserver/caddy/releases/latest | jq -r '.tag_name')
+          ver=$(curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest | jq -r '.tag_name')
+          tag=$(curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/caddyserver/caddy/releases/latest | jq -r '.tag_name')
           echo -e "获取到最新的版本号：${tag}\n当前仓库最新版本号：${ver}"
           echo "tag=${tag}" >> $GITHUB_OUTPUT
           echo "ver=${ver}" >> $GITHUB_OUTPUT
