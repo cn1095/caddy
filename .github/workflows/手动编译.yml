@@ -156,6 +156,7 @@ jobs:
         name: 编译
         run: |
           go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+          TAG=${{ needs.check.outputs.tag }}
           if [[ "${{ env.BJ }}" == "true" ]]; then
             echo "强制进行编译..."
             if [[ -n "${{ github.event.inputs.branch }}" ]]; then
@@ -163,11 +164,11 @@ jobs:
                 echo "TAG=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
             else
                 echo "使用自动获取的版本：${{ needs.check.outputs.tag }}"
-                echo "TAG=${{ needs.check.outputs.tag }}" >> $GITHUB_ENV
+                echo "TAG=$TaG" >> $GITHUB_ENV
             fi
           else
             echo "使用自动获取的版本：${{ needs.check.outputs.tag }}"
-            echo "TAG=${{ needs.check.outputs.tag }}" >> $GITHUB_ENV
+            echo "TAG=$TaG" >> $GITHUB_ENV
           fi
           echo "开始拉取 ${{ env.TAG }} 源码..."
           git clone -b ${{ env.TAG }} https://github.com/caddyserver/caddy /opt/mycaddy
