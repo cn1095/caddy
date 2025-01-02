@@ -154,6 +154,9 @@ jobs:
         name: 编译
         run: |
           go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+          cho "env.BJ=${{ env.BJ }}"
+          echo "github.event.inputs.branch=${{ github.event.inputs.branch }}"
+          echo "steps.getversion.outputs.tag=${{ steps.getversion.outputs.tag }}"
           if [[ "${{ env.BJ }}" == "true" ]]; then
             if [[ -n "${{ github.event.inputs.branch }}" ]]; then
                 echo "TAG=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
