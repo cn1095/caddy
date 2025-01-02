@@ -156,22 +156,24 @@ jobs:
         name: 编译
         run: |
           go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-          TAG=${{ needs.check.outputs.tag }}
           if [[ "${{ env.BJ }}" == "true" ]]; then
             echo "强制进行编译..."
             if [[ -n "${{ github.event.inputs.branch }}" ]]; then
                 echo "使用手动指定的版本：${{ github.event.inputs.branch }}"
-                echo "TAG=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
+                TAG=${{ github.event.inputs.branch }}
+                echo "TAG=$TAG" >> $GITHUB_ENV
             else
                 echo "使用自动获取的版本：${{ needs.check.outputs.tag }}"
-                echo "TAG=$TaG" >> $GITHUB_ENV
+                TAG=${{ needs.check.outputs.tag }}
+                echo "TAG=$TAG" >> $GITHUB_ENV
             fi
           else
             echo "使用自动获取的版本：${{ needs.check.outputs.tag }}"
-            echo "TAG=$TaG" >> $GITHUB_ENV
+            TAG=${{ needs.check.outputs.tag }}
+            echo "TAG=$TAG" >> $GITHUB_ENV
           fi
-          echo "开始拉取 ${{ env.TAG }} 源码..."
-          git clone -b ${{ env.TAG }} https://github.com/caddyserver/caddy /opt/mycaddy
+          echo "开始拉取 ${TAG} 源码..."
+          git clone -b ${TAG} https://github.com/caddyserver/caddy /opt/mycaddy
           curl -Lko /opt/browse.html https://github.com/lmq8267/caddy/raw/refs/heads/main/browse.html || wget --no-check-certificate -O /opt/browse.html https://github.com/lmq8267/caddy/raw/refs/heads/main/browse.html
           
           cp -rf /opt/browse.html /opt/mycaddy/modules/caddyhttp/fileserver/browse.html
