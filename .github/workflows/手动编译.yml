@@ -169,6 +169,7 @@ jobs:
             echo "使用自动获取的版本：${{ needs.check.outputs.tag }}"
             echo "TAG=${{ needs.check.outputs.tag }}" >> $GITHUB_ENV
           fi
+          echo "开始拉取 ${{ env.TAG }} 源码..."
           git clone -b ${{ env.TAG }} https://github.com/caddyserver/caddy /opt/mycaddy
           curl -Lko /opt/browse.html https://github.com/lmq8267/caddy/raw/refs/heads/main/browse.html || wget --no-check-certificate -O /opt/browse.html https://github.com/lmq8267/caddy/raw/refs/heads/main/browse.html
           
