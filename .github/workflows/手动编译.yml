@@ -34,9 +34,10 @@ jobs:
         id: getversion
         run: |
           ver=`curl https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest | jq -r '.tag_name'`
-          tag=`curl https://api.github.com/repos/tailscale/tailscale/releases/latest | jq -r '.tag_name'`
+          tag=`curl https://api.github.com/repos/caddyserver/caddy/releases/latest | jq -r '.tag_name'`
           echo "tag=${tag}" >> $GITHUB_OUTPUT
           echo "ver=${ver}" >> $GITHUB_OUTPUT
+          echo -e "获取到最新的版本号：${tag}\n当前仓库最新版本号：${ver}"
       - name: 删除流程记录
         uses: Mattraks/delete-workflow-runs@main
         with:
